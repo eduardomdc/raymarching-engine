@@ -1,5 +1,6 @@
 #include "draw.hpp"
 #include "metaballs.hpp"
+#include "geometry.hpp"
 #include <array>
 #include <iostream>
 #include <cmath>
@@ -36,19 +37,12 @@ array<float, 3> Camera::direction(array<unsigned int, 2> pixel){
     // for now the camera is fixed to pointing towards the Z axis.
     direction = pixel_pos(pixel);
     // normalize vector
-    float norm = direction[0]*direction[0];
-    norm += direction[1]*direction[1];
-    norm += direction[2]*direction[2];
-    norm = sqrt(norm);
-    direction[0] /= norm;
-    direction[1] /= norm;
-    direction[2] /= norm;
-    return direction;
+    return normalize(direction);
 }
 
 Raycaster::Raycaster() {
     object_color = {255, 0, 0, 255};
-    max_iterations = 5;
+    max_iterations = 20;
     delta = 0.01; // min distance value required to count as ray collision
 }
 
@@ -66,18 +60,21 @@ SDL_Color Raycaster::cast_ray(array<unsigned int, 2> pixel){
     SDL_Color color = {0, 0, 0, 0};
     array<float,3> direction = metaballs->camera->direction(pixel);
     array<float,3> current_pos = metaballs->camera->pos; // start march at camera
+    array<float,3> last_pos;
     float distance = metaballs->distance(current_pos);
-    unsigned int iterations = 0;
-    while (iterations < max_iterations){
+    for(int iterations=0; iterations<max_iterations; iterations++){
   //      std::cout << "distance is " << distance << std::endl;
    //     std::cout << "current_pos is " << current_pos[0] << ", "<<current_pos[1]<< ", " << current_pos[2] << std::endl;
         if (distance < delta){
-            color = object_color;
+            // calculate normal and light dotprod
+            //float lightlevel = dotprod(n, metaballs->light->direction);
+            float lightlevel = 1-float(iterations)/max_iterations;
+            color.r = 160*lightlevel;
             return color;
         }
+        last_pos = current_pos;
         current_pos = march(current_pos, direction, distance);
         distance = metaballs->distance(current_pos);
-        iterations++;
     }
     return color;
 }

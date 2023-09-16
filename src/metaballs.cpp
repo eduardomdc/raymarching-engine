@@ -1,11 +1,14 @@
 #include "metaballs.hpp"
+#include "geometry.hpp"
 #include "isosurface.hpp"
 #include "draw.hpp"
+#include "light.hpp"
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_stdinc.h>
 #include <array>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <vector>
 
@@ -16,13 +19,18 @@ Metaballs::Metaballs(){
     window = nullptr;
     renderer = nullptr;
     objects = {};
-    Sphere* ball = new Sphere(0.5, {0, 0, 5.0});
-    objects.push_back(ball);
-    ball = new Sphere(0.2, {0.8, 0, 5.0});
-    objects.push_back(ball);
     pixels = new Uint32[WIDTH*HEIGHT];
     camera = new Camera();
     raycaster = new Raycaster();
+    light = new Light({1.0, 1.0, 1.0});
+    spawnballs(10);
+}
+
+void Metaballs::spawnballs(int amount){
+    for (int i=0; i<amount;i++){
+        Sphere* ball = new Sphere(1, {randfloat(), randfloat(), 8+randfloat()});
+        objects.push_back(ball);
+    } 
 }
 
 void Metaballs::initSDL(){
@@ -60,13 +68,27 @@ void Metaballs::render(){
         }
     }
 
-    //raycaster->cast_ray({250, 250});
     SDL_UpdateTexture(texture, NULL, pixels, WIDTH*sizeof(Uint32));
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
 }
 
 void Metaballs::update(Uint32 dt){
+    float bound = 2;
+    for (int i=0; i<objects.size(); i++){
+        objects[i]->center[0] += dt*0.001*objects[i]->speed[0]; 
+        objects[i]->center[1] += dt*0.001*objects[i]->speed[1]; 
+        objects[i]->center[2] += dt*0.001*objects[i]->speed[2]; 
+        if (objects[i]->center[0] < -bound || objects[i]->center[0] > bound){
+            objects[i]->speed[0] *= -1;
+        }
+        if (objects[i]->center[1] < -bound || objects[i]->center[1] > bound){
+            objects[i]->speed[1] *= -1;
+        }
+        if (objects[i]->center[2] < -bound || objects[i]->center[2] > bound){
+            objects[i]->speed[2] *= -1;
+        }
+    }
 }
 
 
@@ -109,10 +131,20 @@ float Metaballs::distance(array<float, 3> pos){
     // returns distance function value at pos
     float dis = MAXFLOAT;
     // for now there will be no smoothness
+    /*pos[0] = fmod(pos[0], 15);
+    pos[1] = fmod(pos[1], 15);
+    pos[2] = fmod(pos[2], 15);*/
+    float alpha = 0.1;
+    float sum = 0;
     for (int i=0; i<objects.size(); i++){
-        float this_dis = objects[i]->distance(pos);
-        if (this_dis < dis) dis = this_dis;
+        float this_dis = objects[i]->distance(pos); 
+        //if (this_dis < dis) dis = this_dis;
+        sum += exp(-this_dis/alpha);
     }
+    sum /= objects.size();
+    sum = log(sum);
+    sum *= -alpha;
+    dis = sum;
 
     return dis; 
 }

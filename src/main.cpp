@@ -18,7 +18,7 @@ int main(){
         metaballs->input();
         delta = SDL_GetTicks()-time;
         if (delta < spf){
-            std::cout<<spf-delta<<std::endl;
+            //std::cout<<spf-delta<<std::endl;
             SDL_Delay(spf-delta);
         }
         time = SDL_GetTicks();

@@ -13,6 +13,7 @@ set(MY_SOURCES
     src/isosurface.cpp
     src/geometry.cpp
     src/draw.cpp
+    src/light.cpp
 )
 
 add_executable(metaballs ${MY_SOURCES})
