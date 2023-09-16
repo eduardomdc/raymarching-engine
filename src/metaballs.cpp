@@ -1,4 +1,10 @@
 #include "metaballs.hpp"
+#include "isosurface.hpp"
+#include "draw.hpp"
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_stdinc.h>
+#include <array>
+#include <cmath>
 #include <cstdio>
 #include <iostream>
 #include <vector>
@@ -9,11 +15,19 @@ Metaballs::Metaballs(){
     running = true;
     window = nullptr;
     renderer = nullptr;
+    objects = {};
+    Sphere* ball = new Sphere(0.5, {0, 0, 5.0});
+    objects.push_back(ball);
+    ball = new Sphere(0.2, {0.8, 0, 5.0});
+    objects.push_back(ball);
+    pixels = new Uint32[WIDTH*HEIGHT];
+    camera = new Camera();
+    raycaster = new Raycaster();
 }
 
 void Metaballs::initSDL(){
     cout<<"Starting SDL"<<endl;
-    window = SDL_CreateWindow("Metaballsvision", 
+    window = SDL_CreateWindow("Metaballs!", 
             0,
             0, 
             WIDTH, 
@@ -23,16 +37,32 @@ void Metaballs::initSDL(){
         cout<<"SDL window error"<<endl;
         return;
     }
-    renderer = SDL_CreateRenderer(window, -1, 0);
+    renderer = SDL_CreateRenderer(window, -1, 0);//SDL_RENDERER_PRESENTVSYNC);
     if (!renderer){
         cout<<"SDL renderer error"<<endl;
         return;
     } 
+    SDL_RenderSetLogicalSize(renderer, WIDTH, HEIGHT);
+    SDL_RenderSetIntegerScale(renderer, SDL_TRUE);
+    texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT);
+    if (!texture){
+        cout<<"SDL texture error"<<endl;
+        return;
+    }
 }
 
 void Metaballs::render(){
-    SDL_RenderClear(renderer);
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    #pragma omp parallel for
+    for (uint i=0; i<WIDTH; i++){
+        for (uint j=0; j<HEIGHT; j++){
+            setpixel(i, j, raycaster->cast_ray({i,j}));
+        }
+    }
+
+    //raycaster->cast_ray({250, 250});
+    SDL_UpdateTexture(texture, NULL, pixels, WIDTH*sizeof(Uint32));
+    SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);
 }
 
@@ -58,7 +88,31 @@ void Metaballs::input(){
             break;
         case SDL_KEYDOWN:
             switch (current.key.keysym.sym){
+                case SDLK_w:
+                    camera->pos[2] += 0.1;
+                    break;
+                case SDLK_s:
+                    camera->pos[2] -= 0.1;
+                    break;
+                case SDLK_a:
+                    camera->pos[0] -= 0.1;
+                    break;
+                case SDLK_d:
+                    camera->pos[0] += 0.1;
+                    break;
             }
         }
     }
+}
+
+float Metaballs::distance(array<float, 3> pos){
+    // returns distance function value at pos
+    float dis = MAXFLOAT;
+    // for now there will be no smoothness
+    for (int i=0; i<objects.size(); i++){
+        float this_dis = objects[i]->distance(pos);
+        if (this_dis < dis) dis = this_dis;
+    }
+
+    return dis; 
 }

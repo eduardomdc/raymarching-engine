@@ -14,10 +14,11 @@ int main(){
     Uint32 spf = 1000/FPS;
     while(metaballs->running){
         metaballs->render();
-        delta = SDL_GetTicks()-time;
         metaballs->update(spf);
         metaballs->input();
+        delta = SDL_GetTicks()-time;
         if (delta < spf){
+            std::cout<<spf-delta<<std::endl;
             SDL_Delay(spf-delta);
         }
         time = SDL_GetTicks();
