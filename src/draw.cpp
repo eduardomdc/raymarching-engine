@@ -42,8 +42,8 @@ array<float, 3> Camera::direction(array<unsigned int, 2> pixel){
 
 Raycaster::Raycaster() {
     object_color = {255, 0, 0, 255};
-    max_iterations = 40;
-    delta = 0.2; // min distance value required to count as ray collision
+    max_iterations = 30;
+    delta = 0.03; // min distance value required to count as ray collision
 }
 
 array<float,3> march(array<float,3> pos, array<float,3> dir, float distance){
@@ -67,9 +67,23 @@ SDL_Color Raycaster::cast_ray(array<unsigned int, 2> pixel){
    //     std::cout << "current_pos is " << current_pos[0] << ", "<<current_pos[1]<< ", " << current_pos[2] << std::endl;
         if (distance < delta){
             // calculate normal and light dotprod
-            //float lightlevel = dotprod(n, metaballs->light->direction);
-            float lightlevel = 1-float(iterations)/max_iterations;
-            color.r = 180*lightlevel;
+            array<float,3> normal;
+            float epsilon = 0.01;
+            array<float,3> sample_pos = current_pos;
+            sample_pos[0] += epsilon;
+            float xnorm = metaballs->distance(sample_pos);
+            sample_pos = current_pos;
+            sample_pos[1] += epsilon;
+            float ynorm = metaballs->distance(sample_pos);
+            sample_pos = current_pos;
+            sample_pos[2] += epsilon;
+            float znorm = metaballs->distance(sample_pos);
+            normal[0] = (xnorm-distance)/epsilon;
+            normal[1] = (ynorm-distance)/epsilon;
+            normal[2] = (znorm-distance)/epsilon;
+            float lightlevel = max(float(0),dotprod(normal, metaballs->light->direction));
+            //float lightlevel = 1-float(iterations)/max_iterations;
+            color.r = 200*lightlevel;
             return color;
         }
         last_pos = current_pos;

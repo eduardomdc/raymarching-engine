@@ -32,6 +32,7 @@ public:
     Camera* camera;
     Raycaster* raycaster;
     Light* light;
+    SDL_Color ambient_color;
 };
 
 extern Metaballs* metaballs;

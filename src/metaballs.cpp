@@ -22,8 +22,8 @@ Metaballs::Metaballs(){
     pixels = new Uint32[WIDTH*HEIGHT];
     camera = new Camera();
     raycaster = new Raycaster();
-    light = new Light({1.0, 1.0, 1.0});
-    objects.push_back(new Sea({0, -5, 0}));
+    light = new Light({1.0, 1.0, -1.0});
+    //objects.push_back(new Sea({0, -5, 0}));
     spawnballs(10);
 }
 
