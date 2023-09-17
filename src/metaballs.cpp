@@ -23,6 +23,7 @@ Metaballs::Metaballs(){
     camera = new Camera();
     raycaster = new Raycaster();
     light = new Light({1.0, 1.0, 1.0});
+    objects.push_back(new Sea({0, -5, 0}));
     spawnballs(10);
 }
 
@@ -76,18 +77,7 @@ void Metaballs::render(){
 void Metaballs::update(Uint32 dt){
     float bound = 2;
     for (int i=0; i<objects.size(); i++){
-        objects[i]->center[0] += dt*0.001*objects[i]->speed[0]; 
-        objects[i]->center[1] += dt*0.001*objects[i]->speed[1]; 
-        objects[i]->center[2] += dt*0.001*objects[i]->speed[2]; 
-        if (objects[i]->center[0] < -bound || objects[i]->center[0] > bound){
-            objects[i]->speed[0] *= -1;
-        }
-        if (objects[i]->center[1] < -bound || objects[i]->center[1] > bound){
-            objects[i]->speed[1] *= -1;
-        }
-        if (objects[i]->center[2] < -bound || objects[i]->center[2] > bound){
-            objects[i]->speed[2] *= -1;
-        }
+        objects[i]->update(dt); 
     }
 }
 
@@ -111,16 +101,16 @@ void Metaballs::input(){
         case SDL_KEYDOWN:
             switch (current.key.keysym.sym){
                 case SDLK_w:
-                    camera->pos[2] += 0.1;
+                    camera->pos[2] += 0.3;
                     break;
                 case SDLK_s:
-                    camera->pos[2] -= 0.1;
+                    camera->pos[2] -= 0.3;
                     break;
                 case SDLK_a:
-                    camera->pos[0] -= 0.1;
+                    camera->pos[0] -= 0.3;
                     break;
                 case SDLK_d:
-                    camera->pos[0] += 0.1;
+                    camera->pos[0] += 0.3;
                     break;
             }
         }
@@ -129,12 +119,12 @@ void Metaballs::input(){
 
 float Metaballs::distance(array<float, 3> pos){
     // returns distance function value at pos
-    float dis = MAXFLOAT;
+    float dis;//MAXFLOAT;
     // for now there will be no smoothness
     /*pos[0] = fmod(pos[0], 15);
     pos[1] = fmod(pos[1], 15);
     pos[2] = fmod(pos[2], 15);*/
-    float alpha = 0.1;
+    float alpha = 0.15;
     float sum = 0;
     for (int i=0; i<objects.size(); i++){
         float this_dis = objects[i]->distance(pos); 

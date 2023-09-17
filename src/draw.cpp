@@ -27,7 +27,7 @@ array<float, 3> Camera::pixel_pos(array<unsigned int, 2> screen_pixel){
      * (0,1) (1,1)...
      * */
     pixel[0] = - screen_width/2 + (screen_pixel[0]+0.5)*screen_width/WIDTH;
-    pixel[1] = - screen_height/2 + (screen_pixel[1]+0.5)*screen_height/HEIGHT;
+    pixel[1] = + screen_height/2 - (screen_pixel[1]+0.5)*screen_height/HEIGHT;
     
     return pixel;
 }
@@ -42,8 +42,8 @@ array<float, 3> Camera::direction(array<unsigned int, 2> pixel){
 
 Raycaster::Raycaster() {
     object_color = {255, 0, 0, 255};
-    max_iterations = 20;
-    delta = 0.01; // min distance value required to count as ray collision
+    max_iterations = 40;
+    delta = 0.2; // min distance value required to count as ray collision
 }
 
 array<float,3> march(array<float,3> pos, array<float,3> dir, float distance){
@@ -69,7 +69,7 @@ SDL_Color Raycaster::cast_ray(array<unsigned int, 2> pixel){
             // calculate normal and light dotprod
             //float lightlevel = dotprod(n, metaballs->light->direction);
             float lightlevel = 1-float(iterations)/max_iterations;
-            color.r = 160*lightlevel;
+            color.r = 180*lightlevel;
             return color;
         }
         last_pos = current_pos;
