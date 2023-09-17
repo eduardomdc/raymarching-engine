@@ -1,6 +1,7 @@
 #include "draw.hpp"
 #include "metaballs.hpp"
 #include "geometry.hpp"
+#include "light.hpp"
 #include <array>
 #include <iostream>
 #include <cmath>
@@ -41,7 +42,7 @@ array<float, 3> Camera::direction(array<unsigned int, 2> pixel){
 }
 
 Raycaster::Raycaster() {
-    object_color = {255, 0, 0, 255};
+    object_color = {255, 50, 50, 255};
     max_iterations = 30;
     delta = 0.03; // min distance value required to count as ray collision
 }
@@ -57,7 +58,7 @@ SDL_Color Raycaster::cast_ray(array<unsigned int, 2> pixel){
     /* ray march until it hits objects or exceeeds iterations max_iterations
      * returns color to be rendered to screen*/
 //    std::cout<<"Casting ray "<<pixel[0]<<","<<pixel[1]<<std::endl;
-    SDL_Color color = {0, 0, 0, 0};
+    SDL_Color color = metaballs->ambient_color;
     array<float,3> direction = metaballs->camera->direction(pixel);
     array<float,3> current_pos = metaballs->camera->pos; // start march at camera
     array<float,3> last_pos;
@@ -82,9 +83,11 @@ SDL_Color Raycaster::cast_ray(array<unsigned int, 2> pixel){
             normal[1] = (ynorm-distance)/epsilon;
             normal[2] = (znorm-distance)/epsilon;
             float lightlevel = max(float(0),dotprod(normal, metaballs->light->direction));
-            //float lightlevel = 1-float(iterations)/max_iterations;
-            color.r = 200*lightlevel;
-            return color;
+            SDL_Color direct_light = color_scale({255,255,255}, lightlevel);
+            SDL_Color final = coloradd(colorx(object_color, metaballs->ambient_color), colorx(object_color, direct_light));
+            float occlusionlevel = 1-float(iterations)/max_iterations;
+            final = color_scale(final, occlusionlevel);
+            return final;
         }
         last_pos = current_pos;
         current_pos = march(current_pos, direction, distance);

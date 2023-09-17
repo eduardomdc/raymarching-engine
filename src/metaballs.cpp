@@ -24,6 +24,7 @@ Metaballs::Metaballs(){
     raycaster = new Raycaster();
     light = new Light({1.0, 1.0, -1.0});
     //objects.push_back(new Sea({0, -5, 0}));
+    ambient_color = {135/2, 206/2, 235/2};
     spawnballs(10);
 }
 

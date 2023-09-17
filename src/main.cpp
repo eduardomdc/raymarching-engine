@@ -2,10 +2,12 @@
 #include <SDL2/SDL_timer.h>
 #include <iostream>
 #include <SDL2/SDL.h>
+#include <random>
 
 Metaballs* metaballs;
 
 int main(){
+    srand(time(NULL));
     std::cout<<"Initializing..."<<std::endl;
     metaballs = new Metaballs();
     metaballs->initSDL();
