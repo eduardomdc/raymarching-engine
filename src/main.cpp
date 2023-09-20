@@ -24,6 +24,7 @@ int main(){
             SDL_Delay(spf-delta);
         }
         time = SDL_GetTicks();
+        std::cout << metaballs->camera->pos[2] << std::endl;
     }
     std::cout<<"Exiting..."<<std::endl;
     return 0;

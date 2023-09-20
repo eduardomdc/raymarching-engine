@@ -10,6 +10,7 @@
 using namespace std;
 
 void setpixel(unsigned int w, unsigned int h, SDL_Color color);
+void blurpixel(uint w, uint h);
 
 class Camera {
 public:

@@ -6,10 +6,36 @@
 #include <iostream>
 #include <cmath>
 
+#define REDCH 255<<24
+#define GREENCH 255<<16
+#define BLUECH 255<<8
+
 void setpixel(unsigned int w, unsigned int h, SDL_Color color){
     Uint32 colorbits;
     colorbits = (color.r<<24) + (color.g<<16) + (color.b<<8) + color.a;
     metaballs->pixels[w+h*WIDTH] = colorbits;
+}
+
+SDL_Color getcolor(uint w, uint h){
+    SDL_Color color;
+    Uint32 pixel = metaballs->pixels[w+h*WIDTH];
+    color.r = pixel&REDCH;
+    color.g = pixel&GREENCH;
+    color.b = pixel&BLUECH;
+    return color;
+}
+
+void blurpixel(uint w, uint h){
+    SDL_Color up = getcolor(w, h-1);
+    SDL_Color down = getcolor(w, h+1);
+    SDL_Color left = getcolor(w-1, h);
+    SDL_Color right = getcolor(w+1, h);
+    SDL_Color color;
+    color.a = 255;
+    color.r = up.r/4 + down.r/4 + left.r/4 + right.r/4;
+    color.g = up.g/4 + down.g/4 + left.g/4 + right.g/4;
+    color.b = up.b/4 + down.b/4 + left.b/4 + right.b/4;
+    setpixel(w, h, color);
 }
 
 Camera::Camera(){
@@ -27,8 +53,8 @@ array<float, 3> Camera::pixel_pos(array<unsigned int, 2> screen_pixel){
      * (0,0) (1,0) (2,0)...
      * (0,1) (1,1)...
      * */
-    pixel[0] = - screen_width/2 + (screen_pixel[0]+0.5)*screen_width/WIDTH;
-    pixel[1] = + screen_height/2 - (screen_pixel[1]+0.5)*screen_height/HEIGHT;
+    pixel[0] = - screen_width/2 + (screen_pixel[0])*screen_width/WIDTH;
+    pixel[1] = + screen_height/2 - (screen_pixel[1])*screen_height/HEIGHT;
     
     return pixel;
 }
@@ -42,7 +68,7 @@ array<float, 3> Camera::direction(array<unsigned int, 2> pixel){
 }
 
 Raycaster::Raycaster() {
-    object_color = {255, 50, 50, 255};
+    object_color = {255, 60, 180, 255};
     max_iterations = 30;
     delta = 0.03; // min distance value required to count as ray collision
 }
@@ -61,11 +87,8 @@ SDL_Color Raycaster::cast_ray(array<unsigned int, 2> pixel){
     SDL_Color color = metaballs->ambient_color;
     array<float,3> direction = metaballs->camera->direction(pixel);
     array<float,3> current_pos = metaballs->camera->pos; // start march at camera
-    array<float,3> last_pos;
     float distance = metaballs->distance(current_pos);
     for(int iterations=0; iterations<max_iterations; iterations++){
-  //      std::cout << "distance is " << distance << std::endl;
-   //     std::cout << "current_pos is " << current_pos[0] << ", "<<current_pos[1]<< ", " << current_pos[2] << std::endl;
         if (distance < delta){
             // calculate normal and light dotprod
             array<float,3> normal;
@@ -89,7 +112,6 @@ SDL_Color Raycaster::cast_ray(array<unsigned int, 2> pixel){
             final = color_scale(final, occlusionlevel);
             return final;
         }
-        last_pos = current_pos;
         current_pos = march(current_pos, direction, distance);
         distance = metaballs->distance(current_pos);
     }

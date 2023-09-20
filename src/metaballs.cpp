@@ -47,7 +47,7 @@ void Metaballs::initSDL(){
         cout<<"SDL window error"<<endl;
         return;
     }
-    renderer = SDL_CreateRenderer(window, -1, 0);//SDL_RENDERER_PRESENTVSYNC);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);//SDL_RENDERER_PRESENTVSYNC);
     if (!renderer){
         cout<<"SDL renderer error"<<endl;
         return;
@@ -62,14 +62,18 @@ void Metaballs::initSDL(){
 }
 
 void Metaballs::render(){
-
     #pragma omp parallel for
-    for (uint i=0; i<WIDTH; i++){
-        for (uint j=0; j<HEIGHT; j++){
+    for (uint i=0; i<WIDTH; i+=1){
+        for (uint j=0; j<HEIGHT; j+=1){
             setpixel(i, j, raycaster->cast_ray({i,j}));
         }
-    }
-
+    }/*
+    for (uint i=1; i<WIDTH-1; i+=1){
+        for (uint j=i%2+1; j<HEIGHT-1; j+=2){
+            blurpixel(i, j);
+        }
+    }*/
+    
     SDL_UpdateTexture(texture, NULL, pixels, WIDTH*sizeof(Uint32));
     SDL_RenderCopy(renderer, texture, NULL, NULL);
     SDL_RenderPresent(renderer);

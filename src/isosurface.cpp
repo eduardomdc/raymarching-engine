@@ -27,7 +27,7 @@ float squaredistancemod(array<float, 3> p1, array<float, 3> p2, float mod){
 }
 
 float Sphere::distance(array<float, 3> pos){
-    float distance = sqrt(squaredistance(pos, center));
+    float distance = sqrt((squaredistance(pos, center)));
     return distance - radius;
 }
 

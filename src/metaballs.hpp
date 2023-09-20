@@ -1,7 +1,7 @@
 #ifndef METABALLS
 #define METABALLS
-#define WIDTH 200
-#define HEIGHT 200
+#define WIDTH 400
+#define HEIGHT 400
 #define FPS 15
 
 #include "isosurface.hpp"
